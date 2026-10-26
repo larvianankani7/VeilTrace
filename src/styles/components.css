@@ -1,0 +1,150 @@
+
+.dialogue-box {
+  position: relative;
+  z-index: 2;
+  width: min(760px, 100%);
+  margin: 0 auto;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgb(13 18 24 / 94%);
+  box-shadow: 0 12px 45px rgb(0 0 0 / 24%);
+}
+
+.dialogue-speaker {
+  margin: 0 0 12px;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.dialogue-text {
+  margin: 0;
+  color: var(--text-main);
+  font-size: 14px;
+  line-height: 1.9;
+}
+
+.dialogue-continue {
+  display: block;
+  margin: 20px 0 0 auto;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-panel-light);
+  color: var(--accent);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+}
+
+.dialogue-continue:hover {
+  border-color: var(--accent);
+}
+
+.countdown {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 18px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-panel);
+  font-family: var(--font-mono);
+}
+
+.countdown-label {
+  color: var(--text-muted);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+}
+
+.countdown-value {
+  color: var(--accent);
+  font-size: 28px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.countdown--critical {
+  border-color: var(--danger);
+  animation: countdown-pulse 1.4s ease-in-out infinite;
+}
+
+.countdown--critical .countdown-value {
+  color: var(--danger);
+}
+
+.interaction-prompt {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: rgb(12 17 23 / 92%);
+  color: var(--text-main);
+  font-size: 12px;
+}
+
+.interaction-control {
+  display: inline-grid;
+  min-width: 25px;
+  min-height: 25px;
+  place-items: center;
+  border: 1px solid #455261;
+  border-radius: 4px;
+  color: var(--accent);
+  font-family: var(--font-mono);
+}
+
+.interaction-action {
+  color: var(--text-muted);
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 9px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+
+.status-pill.is-safe {
+  border-color: #285f4b;
+  color: var(--success);
+}
+
+.status-pill.is-risk {
+  border-color: #71323b;
+  color: var(--danger);
+}
+
+.success-message {
+  color: var(--success);
+  font-size: 12px;
+}
+
+.app-muted {
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+@keyframes countdown-pulse {
+  50% {
+    box-shadow: 0 0 18px rgb(255 94 103 / 12%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .countdown--critical {
+    animation: none;
+  }
+}

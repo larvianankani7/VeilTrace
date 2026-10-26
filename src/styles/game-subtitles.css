@@ -1,0 +1,51 @@
+.vt-subtitle-layer {
+  position: fixed;
+  z-index: 10000;
+  inset: auto 0 7.5vh;
+  display: flex;
+  justify-content: center;
+  padding: 0 20px;
+  pointer-events: none;
+}
+
+.vt-subtitle {
+  max-width: min(850px, 92vw);
+  padding: 13px 22px;
+  color: rgba(255, 255, 255, 0.97);
+  background: rgba(5, 4, 7, 0.78);
+  border: 1px solid rgba(213, 67, 84, 0.32);
+  border-radius: 5px;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.42),
+    inset 0 0 24px rgba(125, 7, 25, 0.09);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  font-family: "Courier New", monospace;
+  font-size: clamp(14px, 1.3vw, 18px);
+  line-height: 1.65;
+  font-weight: 500;
+  letter-spacing: 0.025em;
+  text-align: center;
+  overflow-wrap: anywhere;
+
+  opacity: 0;
+  transform: translateY(15px);
+  filter: blur(3px);
+  transition:
+    opacity 320ms ease,
+    transform 420ms cubic-bezier(0.2, 0.75, 0.25, 1),
+    filter 320ms ease;
+}
+
+.vt-subtitle.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vt-subtitle {
+    transition-duration: 1ms;
+  }
+}

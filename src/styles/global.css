@@ -1,0 +1,133 @@
+@import "tailwindcss";
+
+:root {
+  font-family: "Inter", sans-serif;
+  /* Keep your existing variables here */
+  color: #e5eaf0;
+  background: #080b10;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  --bg-main: #080b10;
+  --bg-panel: #10161e;
+  --bg-panel-light: #171f29;
+  --border: #26313d;
+  --text-main: #e5eaf0;
+  --text-muted: #8492a3;
+  --accent: #68e0d0;
+  --accent-hover: #91f3e5;
+  --danger: #ff5e67;
+  --success: #65e6a7;
+  --font-mono: "DM Mono", monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-width: 0;
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--bg-main);
+  color: var(--text-main);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  color: inherit;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+::selection {
+  color: #080b10;
+  background: var(--accent);
+}
+
+.app-shell {
+  min-height: 100vh;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 50% 35%, #122027 0%, transparent 55%),
+    var(--bg-main);
+}
+
+.boot-screen {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+}
+
+.boot-label,
+.boot-status,
+.scene-heading,
+.scene-description > p:first-child {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.boot-label {
+  color: var(--accent);
+}
+
+.game-title {
+  margin: 18px 0 8px;
+  font-size: clamp(42px, 8vw, 88px);
+  font-weight: 600;
+  letter-spacing: 0.18em;
+}
+
+.game-tagline {
+  color: var(--text-muted);
+  font-size: 14px;
+  letter-spacing: 0.08em;
+}
+
+.boot-status {
+  margin-top: 56px;
+  color: var(--text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
