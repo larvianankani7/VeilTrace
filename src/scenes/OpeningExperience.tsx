@@ -1,19 +1,26 @@
 import { useEffect, useRef, useState } from "react";
 import type { FocusEvent } from "react";
 import {
+  clearGameSubtitle,
   getGameSettings,
   saveGameSettings,
+  showGameSubtitle,
   type GameSettings,
 } from "../app/gameSettings";
 import "../styles/opening-experience.css";
 import "../styles/experience-pages.css";
+import InsightsDashboard from "./InsightsDashboard";
 
 type Stage = "opening" | "tagline" | "disclaimer" | "menu" | "scene-01";
-type Page = "settings" | "about" | null;
+import type { CompletedGameStats } from "./InsightsDashboard";
+
+type Page = "settings" | "about" | "insights" | null;
 type SettingsTab = "controls" | "language" | "subtitles" | "audio";
 
 type Props = {
   onStartGame: () => void;
+  hasPlayed?: boolean;
+  completedStats?: CompletedGameStats | null;
 };
 
 const VIDEO = {
@@ -27,26 +34,93 @@ const VIDEO = {
 const MUSIC_PATH = "/audio/menu-ambience.mp3";
 const CINEMATIC_TRANSITION_DURATION = 260;
 
+
+const CUTSCENE_SUBTITLES = [
+  { text: "M: Ugh.. my whole body's aching", start: 0.45, end: 3.0 },
+  { text: "M: where am I?", start: 3.45, end: 4.35 },
+  { text: "UNKNOWN: Finally awake, huh?.", start: 5.35, end: 7.0 },
+  { text: "UNKNOWN: This is what you get for crossing me.", start: 7.05, end: 8.50 },
+  { text: "UNKNOWN: But, I'm not quite that cruel, you know?", start: 8.55, end: 12.0 },
+  {
+    text: "UNKNOWN: But you gotta do something for it, and perhaps you'll earn a chance to escape.",
+    start: 12.05,
+    end: 16.0,
+  },
+  {
+    text: "UNKNOWN: Just make certain no one can trace you. oh, and you might hurry, you're running out of time.",
+    start: 16.05,
+    end: 22.50,
+  },
+  { text: "M: who.. who was she?", start: 22.55, end: 25.0 },
+  { text: "M: Dammit!", start: 25.05, end: 27.2 },
+  {
+    text: "M: locked in a room with a computer and some cryptic threat.. Brilliant",
+    start: 29.25,
+    end: 34.0,
+  },
+  { text: "M: what the hell was that?", start: 34.05, end: 36.8 },
+  {
+    text: "WARNING: Emergency protocol initiated!",
+    start: 37.0,
+    end: 39.2,
+  },
+  {
+    text: "WARNING: You have exactly 10 minutes to complete the required objective!",
+    start: 39.25,
+    end: 43.0,
+  },
+  {
+    text: "WARNING: Failure to complete the objective within the allotted time will result in total system destruction!",
+    start: 43.05,
+    end: 49.0,
+  },
+    {
+    text: "M: What is that even mean!",
+    start: 49.05,
+    end: 50.0,
+  },
+  {
+    text: "M: Someone can find me through this thing?",
+    start: 50.05,
+    end: 53.0,
+  },
+  {
+    text: "M: What am I suppose to do now?",
+    start: 55.05,
+    end: 57.0,
+  },
+] as const;
+
+
 const CONTROLS = [
   [
-    "WASD",
-    "Not implemented. These keys do not move the character or trigger puzzle actions.",
+    "UEI↑",
+    "Used to Combine with different keys to perform different actions in the game. For example, Ctrl + Shift + I to stop the location exposure.",
   ],
   [
     "Left Click",
-    "Open desktop objects and activate on-screen controls to inspect records or apply a puzzle action.",
+    "Selects menu options, and opens desktop items.",
   ],
-  ["Right Click", "Not implemented; there is no right-click puzzle interaction."],
-  ["Shift", "Not implemented as a game or puzzle control."],
-  ["Ctrl", "Not implemented as a game or puzzle control."],
+  [
+    "Right Click",
+    "Activates on-screen controls to inspect records or resolve exposures.",
+  ],
+  [
+    "Shift",
+    "Can change the behavior of other keys when pressed in combination.",
+  ],
   [
     "Enter",
-    "Uses standard keyboard activation for the focused button, such as menu options, dialogue continuation, or puzzle actions. There is no separate Enter puzzle action.",
+    "Activates the currently focused button or control, such as confirming a selected action.",
+  ],
+  [
+    "Ctrl",
+    "Performs combined operations.",
   ],
 ] as const;
 
-function OpeningExperience({ onStartGame }: Props) {
-  const [stage, setStage] = useState<Stage>("opening");
+function OpeningExperience({ onStartGame, hasPlayed = false, completedStats }: Props) {
+  const [stage, setStage] = useState<Stage>(hasPlayed ? "menu" : "opening");
   const [page, setPage] = useState<Page>(null);
   const [tab, setTab] = useState<SettingsTab>("controls");
   const [settings, setSettings] = useState<GameSettings>(getGameSettings);
@@ -60,12 +134,15 @@ function OpeningExperience({ onStartGame }: Props) {
   const hoverAudioContextRef = useRef<AudioContext | null>(null);
   const transitionTimerRef = useRef<number | null>(null);
   const transitioningRef = useRef(false);
+  const currentSubtitleRef = useRef<string | null>(null);
 
   useEffect(() => {
     return () => {
       if (transitionTimerRef.current !== null) {
         window.clearTimeout(transitionTimerRef.current);
       }
+      currentSubtitleRef.current = null;
+      clearGameSubtitle();
       cinematicRef.current?.pause();
       menuBackgroundRef.current?.pause();
       ambienceRef.current?.pause();
@@ -92,22 +169,25 @@ function OpeningExperience({ onStartGame }: Props) {
         if (!isCurrentStage) return;
 
         if (error instanceof DOMException && error.name === "NotAllowedError") {
-          video.muted = true;
-          void video.play().catch((mutedError: unknown) => {
-            if (isCurrentStage) {
+          if (stage === "opening") {
+            // Browsers often block autoplay with sound. Keep playback alive,
+            // but show an explicit user gesture so the opening audio is enabled.
+            video.muted = true;
+            setPlaybackBlocked(true);
+            void video.play().catch((mutedError: unknown) => {
               if (
+                isCurrentStage &&
                 mutedError instanceof DOMException &&
                 mutedError.name === "NotAllowedError"
               ) {
-                if (import.meta.env.DEV) setPlaybackBlocked(true);
-              } else {
-                console.error(
-                  `[VEILTRACE] Failed to play ${stage} video muted:`,
-                  mutedError,
-                );
+                setPlaybackBlocked(true);
               }
-            }
-          });
+            });
+          } else {
+            // Tagline video requires audible sound; prompt user to continue.
+            video.pause();
+            setPlaybackBlocked(true);
+          }
           return;
         }
 
@@ -147,6 +227,18 @@ function OpeningExperience({ onStartGame }: Props) {
       isCurrentStage = false;
       video.pause();
     };
+  }, [stage]);
+
+  useEffect(() => {
+    if (stage !== "menu") return;
+
+    const video = menuBackgroundRef.current;
+    if (!video) return;
+
+    video.muted = true;
+    void video.play().catch((error: unknown) => {
+      console.error("[VEILTRACE] Failed to play menu background video:", error);
+    });
   }, [stage]);
 
   useEffect(() => {
@@ -259,6 +351,8 @@ function OpeningExperience({ onStartGame }: Props) {
   function transitionTo(nextStage: Stage | null, afterTransition?: () => void) {
     if (transitioningRef.current) return;
 
+    currentSubtitleRef.current = null;
+    clearGameSubtitle();
     transitioningRef.current = true;
     setIsTransitioning(true);
     cinematicRef.current?.pause();
@@ -286,15 +380,82 @@ function OpeningExperience({ onStartGame }: Props) {
     } else if (stage === "disclaimer") {
       transitionTo("menu");
     } else if (stage === "scene-01") {
+      currentSubtitleRef.current = null;
+      clearGameSubtitle();
       transitionTo(null, onStartGame);
     }
   }
 
+  function handleSkipCutscene() {
+    if (transitioningRef.current) return;
+    const video = cinematicRef.current;
+    if (video) video.pause();
+    handleVideoEnded();
+  }
+
+  function startGameFromMenu() {
+    // Fullscreen must be requested directly from the player's click gesture with vendor fallbacks.
+    const root = document.documentElement as HTMLElement & {
+      requestFullscreen?: () => Promise<void>;
+      webkitRequestFullscreen?: () => Promise<void>;
+      mozRequestFullScreen?: () => Promise<void>;
+      msRequestFullscreen?: () => Promise<void>;
+    };
+    const req =
+      root.requestFullscreen ||
+      root.webkitRequestFullscreen ||
+      root.mozRequestFullScreen ||
+      root.msRequestFullscreen;
+    if (req) {
+      void req.call(root).catch(() => {
+        // Fullscreen can be unavailable in embedded previews or restricted browsers.
+      });
+    }
+    transitionTo("scene-01");
+  }
+  function handleCutsceneTimeUpdate() {
+    if (stage !== "scene-01") return;
+    const video = cinematicRef.current;
+    if (!video || video.ended) return;
+
+    const time = video.currentTime;
+    const activeCue = CUTSCENE_SUBTITLES.find(
+      (cue) => time >= cue.start && time < cue.end,
+    );
+
+    if (activeCue) {
+      if (currentSubtitleRef.current !== activeCue.text) {
+        currentSubtitleRef.current = activeCue.text;
+        showGameSubtitle(activeCue.text, (activeCue.end - time) * 1000);
+      }
+    } else {
+      if (currentSubtitleRef.current !== null) {
+        currentSubtitleRef.current = null;
+        clearGameSubtitle();
+      }
+    }
+  }
+
+  function handleCutscenePause() {
+    if (stage === "scene-01") {
+      currentSubtitleRef.current = null;
+      clearGameSubtitle();
+    }
+  }
+
   function resumeCinematic() {
+    const root = document.documentElement as HTMLElement & {
+      requestFullscreen?: () => Promise<void>;
+    };
+    if (root.requestFullscreen && !document.fullscreenElement) {
+      void root.requestFullscreen().catch(() => {});
+    }
+
     const video = cinematicRef.current;
     if (!video) return;
 
     video.muted = false;
+    video.volume = settings.musicVolume / 100;
     void video.play().then(
       () => setPlaybackBlocked(false),
       (error: unknown) => {
@@ -310,11 +471,28 @@ function OpeningExperience({ onStartGame }: Props) {
       <main
         className={`vt-cinematic${stage === "tagline" ? " vt-cinematic--transition" : ""}`}
         aria-label="VEILTRACE cinematic"
+        onPointerDown={() => {
+          const root = document.documentElement as HTMLElement & {
+            requestFullscreen?: () => Promise<void>;
+          };
+          if (root.requestFullscreen && !document.fullscreenElement) {
+            void root.requestFullscreen().catch(() => {});
+          }
+          const video = cinematicRef.current;
+          if (video && video.muted) {
+            video.muted = false;
+            video.volume = settings.musicVolume / 100;
+            void video.play().catch((error: unknown) => {
+              console.error("[VEILTRACE] Could not resume cinematic audio:", error);
+              setPlaybackBlocked(true);
+            });
+          }
+        }}
       >
         <video
           key={stage}
           ref={cinematicRef}
-          className="vt-cinematic__video vt-cinematic__video--raised"
+          className={`vt-cinematic__video${stage === "opening" ? " vt-cinematic__video--raised" : ""}`}
           src={path}
           playsInline
           preload="auto"
@@ -327,13 +505,20 @@ function OpeningExperience({ onStartGame }: Props) {
           }}
           data-vt-audio-type="music"
         />
+        <button
+          type="button"
+          className="vt-cinematic__skip"
+          onClick={handleSkipCutscene}
+        >
+          SKIP CUTSCENE <span aria-hidden="true">»</span>
+        </button>
         {stage === "tagline" && (
           <div
             className={`vt-transition-cover${isTransitioning ? " is-active" : ""}`}
             aria-hidden="true"
           />
         )}
-        {import.meta.env.DEV && playbackBlocked && (
+        {playbackBlocked && (
           <div className="vt-playback-gate">
             <p className="vt-playback-gate__eyebrow">
               PLAYBACK REQUIRES INTERACTION
@@ -365,11 +550,14 @@ function OpeningExperience({ onStartGame }: Props) {
       >
         <video
           ref={cinematicRef}
-          className="vt-cinematic__video vt-cinematic__video--raised"
+          className="vt-cinematic__video"
           src={path}
           playsInline
           preload="auto"
           onEnded={handleVideoEnded}
+          onTimeUpdate={isFirstCutscene ? handleCutsceneTimeUpdate : undefined}
+          onPause={isFirstCutscene ? handleCutscenePause : undefined}
+          onSeeked={isFirstCutscene ? handleCutsceneTimeUpdate : undefined}
           onError={() => {
             const message = `Failed to load ${stage} video: ${path}`;
             console.error(`[VEILTRACE] ${message}`);
@@ -378,6 +566,13 @@ function OpeningExperience({ onStartGame }: Props) {
             );
           }}
         />
+        <button
+          type="button"
+          className="vt-cinematic__skip"
+          onClick={handleSkipCutscene}
+        >
+          SKIP CUTSCENE <span aria-hidden="true">»</span>
+        </button>
         {playbackError && (
           <p className="vt-video-error" role="alert">
             {playbackError}
@@ -452,9 +647,9 @@ function OpeningExperience({ onStartGame }: Props) {
               className="vt-menu__option vt-menu__option--primary"
               onPointerEnter={playHoverSound}
               onFocus={handleButtonFocus}
-              onClick={() => transitionTo("scene-01")}
+              onClick={startGameFromMenu}
             >
-              <span>START GAME</span>
+              <span>{hasPlayed ? "NEW GAME" : "START GAME"}</span>
               <span className="vt-menu__option-arrow" aria-hidden="true">↗</span>
             </button>
 
@@ -482,6 +677,19 @@ function OpeningExperience({ onStartGame }: Props) {
               <span>ABOUT</span>
               <span className="vt-menu__option-arrow" aria-hidden="true">↗</span>
             </button>
+
+            {hasPlayed && (
+              <button
+                type="button"
+                className="vt-menu__option vt-menu__option--insights"
+                onPointerEnter={playHoverSound}
+                onFocus={handleButtonFocus}
+                onClick={() => setPage("insights")}
+              >
+                <span>INSIGHTS</span>
+                <span className="vt-menu__option-arrow" aria-hidden="true">↗</span>
+              </button>
+            )}
           </nav>
 
           <footer className="vt-menu__footer">
@@ -490,6 +698,8 @@ function OpeningExperience({ onStartGame }: Props) {
             <span>FICTIONAL ENVIRONMENT</span>
           </footer>
         </div>
+      ) : page === "insights" ? (
+        <InsightsDashboard onBack={() => setPage(null)} stats={completedStats} />
       ) : (
         <section className="vt-page-wrap">
           <div className="vt-page">
@@ -579,7 +789,7 @@ function OpeningExperience({ onStartGame }: Props) {
                         </div>
                       ))}
                       <p className="vt-controls__tip">
-                        <strong>TIP:</strong> Try combining multiple controls at
+                        <strong>NOTE:</strong> Try combining multiple controls at
                         the same time to discover different interactions and
                         uncover possible solutions to tricky locks.
                       </p>
@@ -686,16 +896,6 @@ function OpeningExperience({ onStartGame }: Props) {
                 </div>
               </div>
             )}
-
-            <button
-              type="button"
-              className="vt-page__back"
-              onPointerEnter={playHoverSound}
-              onFocus={handleButtonFocus}
-              onClick={() => setPage(null)}
-            >
-              ← RETURN TO MENU
-            </button>
           </div>
         </section>
       )}

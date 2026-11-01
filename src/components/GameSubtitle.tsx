@@ -11,6 +11,37 @@ type SubtitleCue = {
   duration?: number;
 };
 
+function parseSubtitleText(raw: string) {
+  const colonIndex = raw.indexOf(":");
+  if (colonIndex > 0 && colonIndex < 25) {
+    const candidate = raw.slice(0, colonIndex).trim();
+    const normalized = candidate.toLowerCase();
+    if (
+      normalized === "m" ||
+      normalized === "unknown" ||
+      normalized === "warning" ||
+      normalized === "system"
+    ) {
+      return {
+        speaker: candidate,
+        dialogue: raw.slice(colonIndex + 1).trimStart(),
+        colorClass:
+          normalized === "m"
+            ? "vt-subtitle__speaker--m"
+            : normalized === "unknown"
+              ? "vt-subtitle__speaker--unknown"
+              : "vt-subtitle__speaker--warning",
+      };
+    }
+  }
+
+  return {
+    speaker: null,
+    dialogue: raw,
+    colorClass: "",
+  };
+}
+
 function GameSubtitle() {
   const [enabled, setEnabled] = useState(
     () => getGameSettings().subtitlesEnabled,
@@ -85,10 +116,36 @@ function GameSubtitle() {
       }, Math.max(700, cue.duration ?? 3500));
     }
 
+    function handleClear() {
+      if (hideTimer.current !== null) {
+        window.clearTimeout(hideTimer.current);
+        hideTimer.current = null;
+      }
+      if (clearTimer.current !== null) {
+        window.clearTimeout(clearTimer.current);
+        clearTimer.current = null;
+      }
+      if (animationFrameOne.current !== null) {
+        window.cancelAnimationFrame(animationFrameOne.current);
+        animationFrameOne.current = null;
+      }
+      if (animationFrameTwo.current !== null) {
+        window.cancelAnimationFrame(animationFrameTwo.current);
+        animationFrameTwo.current = null;
+      }
+
+      setVisible(false);
+      clearTimer.current = window.setTimeout(() => {
+        setText("");
+      }, 450);
+    }
+
     window.addEventListener("veiltrace:subtitle", handleSubtitle);
+    window.addEventListener("veiltrace:clear-subtitle", handleClear);
 
     return () => {
       window.removeEventListener("veiltrace:subtitle", handleSubtitle);
+      window.removeEventListener("veiltrace:clear-subtitle", handleClear);
 
       if (hideTimer.current !== null) {
         window.clearTimeout(hideTimer.current);
@@ -110,10 +167,26 @@ function GameSubtitle() {
 
   if (!text) return null;
 
+  const lines = text.split("\n").filter((l) => l.trim().length > 0);
+  const parsedLines = lines.map(parseSubtitleText);
+
   return (
     <div className="vt-subtitle-layer" aria-live="polite" aria-atomic="true">
       <div className={`vt-subtitle${visible && enabled ? " is-visible" : ""}`}>
-        {text}
+        {parsedLines.map((parsed, idx) => (
+          <div key={idx} className="vt-subtitle__line">
+            {parsed.speaker ? (
+              <>
+                <span className={`vt-subtitle__speaker ${parsed.colorClass}`}>
+                  {parsed.speaker}:{" "}
+                </span>
+                <span className="vt-subtitle__text">{parsed.dialogue}</span>
+              </>
+            ) : (
+              <span className="vt-subtitle__text">{parsed.dialogue}</span>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );

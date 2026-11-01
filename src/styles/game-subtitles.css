@@ -44,6 +44,26 @@
   filter: blur(0);
 }
 
+.vt-subtitle__speaker {
+  font-weight: 700;
+}
+
+.vt-subtitle__speaker--m {
+  color: #60a5fa;
+}
+
+.vt-subtitle__speaker--unknown {
+  color: #c084fc;
+}
+
+.vt-subtitle__speaker--warning {
+  color: #f87171;
+}
+
+.vt-subtitle__text {
+  color: #ffffff;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .vt-subtitle {
     transition-duration: 1ms;

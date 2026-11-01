@@ -15,9 +15,13 @@ const criticalObjectIds = new Set([
   "daymark-calendar",
   "route-trace",
   "permission-garden",
+  "location-exposure",
   "session-mirror",
   "token-cabinet",
   "environment-cabinet",
+  "nearfield-devices",
+  "echo-logs",
+  "origin-gate",
 ]);
 
 const objectDefinitions: Array<
@@ -30,6 +34,7 @@ const objectDefinitions: Array<
   { id: "keyhaven-vault", name: "Keyhaven Vault", category: "Root" },
   { id: "wayfarer-browser", name: "Wayfarer Browser", category: "Root" },
   { id: "device-registry", name: "Device Registry", category: "Root" },
+  { id: "location-exposure", name: "Location Exposure", category: "Root" },
   { id: "sentinel-alerts", name: "Sentinel Alerts", category: "Root" },
   { id: "cloud-shelf", name: "Cloud Shelf", category: "Root" },
   { id: "control-centre", name: "Control Centre", category: "Root" },

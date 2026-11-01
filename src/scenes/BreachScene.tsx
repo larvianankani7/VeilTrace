@@ -1,9 +1,21 @@
 import { useState } from "react";
 import type { SceneProps } from "./SceneTypes";
 import DialogueBox from "../components/DialogueBox";
+import { scene01BreachLines } from "../data/dialogue";
 
 function BreachScene({ onComplete }: SceneProps) {
+  const [lineIndex, setLineIndex] = useState(0);
   const [warningAcknowledged, setWarningAcknowledged] = useState(false);
+  const currentLine = scene01BreachLines[lineIndex];
+
+  function continueBreach() {
+    if (lineIndex < scene01BreachLines.length - 1) {
+      setLineIndex((index) => index + 1);
+      return;
+    }
+
+    setWarningAcknowledged(true);
+  }
 
   return (
     <main className="scene scene--breach">
@@ -43,10 +55,10 @@ function BreachScene({ onComplete }: SceneProps) {
 
       {!warningAcknowledged ? (
         <DialogueBox
-          speaker="M"
-          text="What does that even mean? Someone can find me through this thing? No, no… think, M. Ten minutes to do what, exactly?"
+          speaker={currentLine.speaker}
+          text={currentLine.text}
           showContinue
-          onContinue={() => setWarningAcknowledged(true)}
+          onContinue={continueBreach}
         />
       ) : (
         <button

@@ -2,9 +2,10 @@ import type { ReactNode } from "react";
 
 type DesktopWindowProps = {
   title: string;
-  category: string;
+  category?: string;
   onClose: () => void;
   children: ReactNode;
+  windowClass?: string;
 };
 
 function DesktopWindow({
@@ -12,10 +13,11 @@ function DesktopWindow({
   category,
   onClose,
   children,
+  windowClass = "",
 }: DesktopWindowProps) {
   return (
     <section
-      className="desktop-window"
+      className={`desktop-window ${windowClass}`.trim()}
       role="dialog"
       aria-modal="true"
       aria-label={`${title} window`}
@@ -24,7 +26,9 @@ function DesktopWindow({
         <div className="desktop-window__heading">
           <span className="desktop-window__indicator" aria-hidden="true" />
           <div>
-            <p className="desktop-window__category">{category}</p>
+            {category && (
+              <p className="desktop-window__category">{category}</p>
+            )}
             <h2>{title}</h2>
           </div>
         </div>

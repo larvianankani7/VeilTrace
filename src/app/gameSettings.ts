@@ -33,28 +33,44 @@ export function getGameSettings(): GameSettings {
   }
 }
 
+let audioObserver: MutationObserver | null = null;
+
 function applyAudioVolumes(settings: GameSettings) {
+  if (typeof document === "undefined") return;
+
   document.querySelectorAll<HTMLMediaElement>("audio, video").forEach((media) => {
-    const type = media.dataset.vtAudioType ??
-    (media.tagName === "VIDEO" ? "music" : "dialogue");
+    const type =
+      media.dataset.vtAudioType ??
+      (media.tagName === "VIDEO" ? "music" : "dialogue");
 
     media.volume =
-    type === "music"
+      type === "music"
         ? settings.musicVolume / 100
         : settings.dialogueVolume / 100;
-    if (typeof document !== "undefined") {
-    const observer = new MutationObserver(() => {
-        applyAudioVolumes(getGameSettings());
+  });
+
+  // Watch for newly mounted media without creating a new observer each time.
+  if (!audioObserver && typeof MutationObserver !== "undefined") {
+    audioObserver = new MutationObserver(() => {
+      const currentSettings = getGameSettings();
+      document.querySelectorAll<HTMLMediaElement>("audio, video").forEach((media) => {
+        const type =
+          media.dataset.vtAudioType ??
+          (media.tagName === "VIDEO" ? "music" : "dialogue");
+        media.volume =
+          type === "music"
+            ? currentSettings.musicVolume / 100
+            : currentSettings.dialogueVolume / 100;
+      });
     });
 
-    observer.observe(document.documentElement, {
-        childList: true,
-        subtree: true,
-        attributes: true,
-        attributeFilter: ["data-vt-audio-type"],
+    audioObserver.observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["data-vt-audio-type"],
     });
-    }
-  });
+  }
 }
 
 export function saveGameSettings(
@@ -102,4 +118,9 @@ export function showGameSubtitle(text: string, duration = 3500) {
       detail: { text, duration },
     }),
   );
+}
+
+/** Call this to immediately hide and clear any active subtitle. */
+export function clearGameSubtitle() {
+  window.dispatchEvent(new CustomEvent("veiltrace:clear-subtitle"));
 }

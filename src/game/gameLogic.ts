@@ -9,7 +9,22 @@ const criticalPuzzleIds = new Set(
 );
 
 export function isCriticalPuzzle(puzzleId: string): boolean {
-  return criticalPuzzleIds.has(puzzleId);
+  return (
+    criticalPuzzleIds.has(puzzleId) ||
+    puzzleId === "location-exposure" ||
+    puzzleId === "bloom-filter" ||
+    puzzleId === "ciphertext" ||
+    puzzleId === "race-condition" ||
+    puzzleId === "latency" ||
+    puzzleId === "access-token" ||
+    puzzleId === "caching" ||
+    puzzleId === "nearfield-devices" ||
+    puzzleId === "cryptography" ||
+    puzzleId === "echo-logs" ||
+    puzzleId === "snowflake" ||
+    puzzleId === "origin-gate" ||
+    puzzleId === "cdn"
+  );
 }
 
 export function getSolvedCount(state: GameState): number {

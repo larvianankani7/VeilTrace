@@ -1,5 +1,7 @@
+import type { DialogueSpeaker } from "../data/dialogue";
+
 export type SceneDialogue = {
-  speaker: "M" | "Unknown" | "SYSTEM";
+  speaker: DialogueSpeaker;
   text: string;
 };
 

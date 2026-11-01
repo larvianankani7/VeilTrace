@@ -141,7 +141,7 @@
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(-28px) scale(1);
     filter: blur(0);
   }
 }
@@ -602,3 +602,13 @@
     animation-duration: 1ms;
   }
 }
+
+/* Keep the Return to Menu control anchored at the bottom of the page panel,
+   clear of the top navigation/header area. */
+.vt-page__back {
+  margin-top: auto;
+  padding-top: 12px;
+}
+
+/* The header close control already returns to the menu; hide the duplicate footer button that crowded the navigation. */
+.vt-page__back { display: none !important; }

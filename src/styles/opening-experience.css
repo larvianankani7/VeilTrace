@@ -3,7 +3,7 @@
    ========================================================= */
 
 .vt-cinematic {
-  position: fixed;
+  position: relative;
   inset: 0;
   z-index: 1000;
   display: grid;
@@ -254,11 +254,12 @@
 .vt-menu__background {
   position: absolute;
   inset: 0;
-  z-index: -3;
+  z-index: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center;
+  pointer-events: none;
   background: #030303;
 }
 
@@ -266,7 +267,8 @@
 .vt-menu__shade {
   position: absolute;
   inset: 0;
-  z-index: -2;
+  z-index: 1;
+  pointer-events: none;
   background:
     linear-gradient(
       90deg,
@@ -292,7 +294,7 @@
 .vt-menu__grain {
   position: absolute;
   inset: 0;
-  z-index: -1;
+  z-index: 2;
   opacity: 0.14;
   pointer-events: none;
   background-image: repeating-linear-gradient(
@@ -305,6 +307,7 @@
 
 .vt-menu__layout {
   position: relative;
+  z-index: 3;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -1089,5 +1092,70 @@
   .vt-disclaimer h1 {
     font-size: clamp(32px, 9vw, 48px);
     letter-spacing: 0.1em;
+  }
+}
+
+/* Cinematic framing refinements */
+.vt-cinematic__video {
+  object-position: center 40%;
+}
+
+.vt-cinematic__video--raised {
+  object-position: center 38%;
+}
+
+/* Center the disclaimer and lift the content slightly */
+.vt-disclaimer__content {
+  width: min(100%, 720px);
+  margin-inline: auto;
+  text-align: center;
+  transform: translateY(-11vh);
+}
+
+.vt-cinematic__skip {
+  position: absolute;
+  right: 32px;
+  bottom: 28px;
+  z-index: 20;
+  padding: 11px 18px;
+  border: 1px solid rgba(255, 70, 85, 0.65);
+  border-radius: 4px;
+  background: rgba(10, 8, 12, 0.78);
+  color: #f5e9eb;
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: background 180ms ease, border-color 180ms ease;
+}
+
+.vt-cinematic__skip:hover {
+  background: rgba(130, 20, 35, 0.85);
+  border-color: #ff4655;
+}
+
+.vt-cinematic__skip:focus-visible {
+  outline: 2px solid #ff4655;
+  outline-offset: 4px;
+}
+
+
+
+/* VEILTRACE patch 2026-10-27: fixed viewport cinematic and skip overlay */
+.vt-cinematic { position: fixed; inset: 0; width: 100vw; height: 100vh; height: 100dvh; overflow: hidden; }
+.vt-cinematic__video { width: 100%; height: 100%; object-fit: cover; }
+.vt-cinematic__skip { position: fixed; right: clamp(18px, 3vw, 44px); bottom: clamp(18px, 3vh, 36px); z-index: 2147483000; display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 12px 18px; border: 1px solid rgba(255,70,85,.82); border-radius: 5px; background: rgba(7,5,8,.94); color: #fff2f3; box-shadow: 0 0 24px rgba(255,35,55,.18); font: 700 11px/1.2 ui-monospace,monospace; letter-spacing: .16em; cursor: pointer; pointer-events: auto; }
+.vt-cinematic__skip:hover, .vt-cinematic__skip:focus-visible { background: rgba(100,10,24,.97); border-color: #ff4655; }
+.vt-transition-cover { z-index: 5; }
+.vt-playback-gate { z-index: 10; }
+.vt-cinematic__skip { z-index: 30; }
+/* Raise the disclaimer card slightly */
+.vt-disclaimer__card {
+  transform: translateY(-50px);
+}
+
+@media (max-height: 700px) {
+  .vt-disclaimer__card {
+    transform: translateY(-22px);
   }
 }

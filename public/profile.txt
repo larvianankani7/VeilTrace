@@ -1,0 +1,35 @@
+[PROFILE RECORD // PERSONNEL DOSSIER]
+=========================================
+DOCUMENT ID     : VT-DOS-0882
+RESTRICTION     : TIER-2 RESTRICTED / READ-ONLY
+CLASSIFICATION  : FICTIONAL SIMULATED RECORD
+=========================================
+
+--- IDENTIFICATION ---
+Full Name       : Merdin Morov
+Nickname        : M
+Age             : 28
+Sex             : Male
+Nationality     : Republic of Valen
+Occupation      : Systems Infrastructure Analyst
+
+--- CONTACT DETAILS ---
+Email           : merdinmorov1@gmail.com
+Phone Number    : (202) 555-0147
+
+--- FAMILY RECORDS ---
+Father's Name   : Daniel Morov
+Mother's Name   : Elena Morova
+
+--- ASSIGNMENT & STATUS ---
+Assigned Node   : VT-NODE-08 (Containment Wing)
+Status          : Detained / Protocol Locked
+Incident Code   : SEC-BREACH-0x4B
+
+--- INVESTIGATION NOTES ---
+Subject was isolated following anomalous configuration changes detected
+in external data relays. Local terminal session remains operational under
+temporary containment protocol. Network traces must be restricted to
+prevent automated telemetry capture.
+=========================================
+[END OF FILE - READ ONLY]
